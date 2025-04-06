@@ -2,11 +2,10 @@ package dev.github.j4c62.broadcaster.infra.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.toolisticon.fluapigen.api.*;
-import io.toolisticon.fluapigen.validation.api.NotNull;
 import dev.github.j4c62.broadcaster.core.composer.NotificationComposer;
 import dev.github.j4c62.broadcaster.core.dto.CloudEvent;
-import dev.github.j4c62.broadcaster.core.dto.Notification;
+import io.toolisticon.fluapigen.api.*;
+import io.toolisticon.fluapigen.validation.api.NotNull;
 
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +19,7 @@ public class NotificationFluentApi {
 
 
     @FluentApiBackingBean
-    public interface NotificationData extends Notification {
+    public interface NotificationData {
         @NotNull
         CloudEvent cloudEvent();
 
