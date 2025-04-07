@@ -35,12 +35,8 @@ jobs:
         git push origin $TAG  # Empuja el tag al repositorio
 
     - name: Create GitHub Release
-      uses: gh action/create-release@v1
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: $TAG
-        release_name: "Release $TAG"
-        body: "Automatic release for tag $TAG"
-        draft: false
-        prerelease: false
+        files: ./build/libs/*  # Agrega los archivos que quieras asociar con el release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Utiliza el token para autenticarte y crear el release
