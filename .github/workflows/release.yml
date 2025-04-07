@@ -1,0 +1,46 @@
+name: Create Release Tag and Publish
+
+on:
+  push:
+    branches:
+      - main  # Esto hace que el flujo de trabajo se ejecute cuando se haga push a la rama main
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Para crear tags y releases
+      issues: write     # Para poder crear un release
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 23
+      uses: actions/setup-java@v4
+      with:
+        java-version: '23'
+        distribution: 'temurin'
+
+    - name: Set up Git user for tagging
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+
+    - name: Create Release Tag
+      run: |
+        VERSION=$(./gradlew -q printVersion)  # Cambia esto si tu versión está en otro lugar, como en tu gradle.properties
+        TAG="v$VERSION"
+        git tag $TAG
+        git push origin $TAG  # Empuja el tag al repositorio
+
+    - name: Create GitHub Release
+      uses: gh action/create-release@v1
+      with:
+        tag_name: $TAG
+        release_name: "Release $TAG"
+        body: "Automatic release for tag $TAG"
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Utiliza el token para autenticarte y crear el release
