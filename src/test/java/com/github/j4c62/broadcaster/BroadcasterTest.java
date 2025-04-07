@@ -82,7 +82,7 @@ class BroadcasterTest {
     when(selector.findDelivers(cloudEvent)).thenReturn(List.of(emailDeliverer));
     when(composer.compose()).thenReturn(List.of(emailNotification));
 
-    Broadcaster broadcaster = Broadcaster.spec(selector, composer).filter(_ -> false).build();
+    Broadcaster broadcaster = Broadcaster.spec(selector, composer).filter(diff -> false).build();
 
     broadcaster.broadcast(cloudEvent);
 
