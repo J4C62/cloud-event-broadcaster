@@ -1,7 +1,7 @@
 plugins {
     id 'java'
+    id "application"
 }
-
 
 
 repositories {
@@ -16,11 +16,14 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
 
+    implementation 'com.google.auto.service:auto-service:1.1.1'
+    annotationProcessor('com.google.auto.service:auto-service:1.1.1')
+
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.assertj:assertj-core:4.0.0-M1'
 
-    implementation 'com.rabbitmq:amqp-client:5.15.0'
+    implementation 'com.rabbitmq:amqp-client:5.18.0'
 
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")

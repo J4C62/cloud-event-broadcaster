@@ -1,0 +1,46 @@
+{
+  "deliverer": {
+    "example.com": {
+      "example.success": {
+        "channels": [
+          "email",
+          "event_bridge"
+        ]
+      }
+    }
+  },
+  "config": {
+    "example.com": {
+      "example.success": {
+        "email": {
+          "from": "example@example",
+          "target": "target@target",
+          "subject": "Example"
+        },
+        "event_bridge": {
+          "source": "aws.events",
+          "detail_type": "ExampleEvent",
+          "time": "2021-06-01T00:00:00Z",
+          "resources": [
+            "arn:aws:events:region:account-id:rule/rule-name"
+          ],
+          "detail": {
+            "example": "value"
+          }
+        }
+      }
+    }
+  },
+  "templates": {
+    "example.com": {
+      "example.success": {
+        "email": {
+          "en": {
+            "content": "<!DOCTYPE html>\n<html xmlns:th=\"http://www.thymeleaf.org\" lang=\"es\">\n<head>\n    <title>Notificación de Transacción</title>\n</head>\n<body>\n<h1>Notificación de Transacción</h1>\n<p>Hola <span th:text=\"${userName}\">Usuario</span>,</p>\n<p>Tu reciente transacción de <span th:text=\"${transactionAmount}\">Cantidad</span> ha sido procesada con éxito.</p>\n<p>¡Gracias por usar nuestro servicio!</p>\n</body>\n</html>\n",
+            "engine": "Thymeleaf"
+          }
+        }
+      }
+    }
+  }
+}

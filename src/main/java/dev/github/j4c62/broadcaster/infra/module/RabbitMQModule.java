@@ -10,24 +10,25 @@ import com.rabbitmq.client.ConnectionFactory;
 
 public class RabbitMQModule extends AbstractModule {
 
-    @Provides
-    @Named("rabbitmqConnection")
-    @Singleton
-    @SuppressWarnings("unused")
-    public Connection provideConnection() throws Exception {
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
-        factory.setPort(5672);
-        factory.setUsername("guest");
-        factory.setPassword("guest");
-        return factory.newConnection();
-    }
+  @Provides
+  @Named("rabbitmqConnection")
+  @Singleton
+  @SuppressWarnings("unused")
+  public Connection provideConnection() throws Exception {
+    ConnectionFactory factory = new ConnectionFactory();
+    factory.setHost("localhost");
+    factory.setPort(5672);
+    factory.setUsername("guest");
+    factory.setPassword("guest");
+    return factory.newConnection();
+  }
 
-    @Provides
-    @Named("rabbitmqChannel")
-    @Singleton
-    @SuppressWarnings("unused")
-    public Channel provideChannel(@Named("rabbitmqConnection") Connection connection) throws Exception {
-        return connection.createChannel();
-    }
+  @Provides
+  @Named("rabbitmqChannel")
+  @Singleton
+  @SuppressWarnings("unused")
+  public Channel provideChannel(@Named("rabbitmqConnection") Connection connection)
+      throws Exception {
+    return connection.createChannel();
+  }
 }
