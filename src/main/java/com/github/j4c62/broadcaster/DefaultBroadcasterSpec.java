@@ -11,8 +11,8 @@ import java.util.function.Predicate;
 public class DefaultBroadcasterSpec implements BroadcasterSpec {
   private final DelivererSelector selector;
   private final DiffusibleComposer composer;
-  private Predicate<Diffusible> filter = _ -> true;
-  private Consumer<BroadcastEvent> onDelivery = _ -> {};
+  private Predicate<Diffusible> filter = diff -> true;
+  private Consumer<BroadcastEvent> onDelivery = event -> {};
 
   /**
    * Constructor for creating a {@link DefaultBroadcasterSpec} with a specific {@link
