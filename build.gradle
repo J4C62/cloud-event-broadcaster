@@ -8,7 +8,7 @@ repositories {
 }
 
 group = 'com.github.j4c62'
-version = '0.1.0-SNAPSHOT'
+version = '1.0.0'
 
 def junitVersion = '5.10.0'
 def assertjVersion = '4.0.0-M1'
@@ -22,6 +22,4 @@ dependencies {
 }
 test {
     useJUnitPlatform()
-}
-application {
 }
