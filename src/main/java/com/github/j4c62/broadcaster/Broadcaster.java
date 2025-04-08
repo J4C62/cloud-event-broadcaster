@@ -1,5 +1,7 @@
 package com.github.j4c62.broadcaster;
 
+import com.github.j4c62.broadcaster.spec.BroadcasterSpec;
+import com.github.j4c62.broadcaster.spec.DefaultBroadcasterSpec;
 import com.github.j4c62.composer.DiffusibleComposer;
 import com.github.j4c62.delivery.Deliverer;
 import com.github.j4c62.delivery.Diffusible;
@@ -11,7 +13,7 @@ import java.util.stream.Collectors;
 
 /** A central class responsible for broadcasting cloud events to deliverers. */
 @SuppressWarnings("unused")
-public class Broadcaster {
+public final class Broadcaster {
   private final DelivererSelector deliverers;
   private final DiffusibleComposer composer;
   private Predicate<Diffusible> filter = diff -> true;
@@ -70,17 +72,17 @@ public class Broadcaster {
   /**
    * Broadcast the provided cloud event to the selected deliverers.
    *
-   * @param cloudEvent The cloud event to broadcast.
+   * @param diffusible The cloud event to broadcast.
    */
-  public void broadcast(Diffusible cloudEvent) {
-    var matchingDeliverers = deliverers.findDelivers(cloudEvent);
+  public void broadcast(Diffusible diffusible) {
+    var matchingDeliverers = deliverers.findDelivers(diffusible);
     var deliverersByChannel =
         matchingDeliverers.stream().collect(Collectors.groupingBy(Deliverer::getChannel));
 
     composer.compose().stream()
         .filter(Objects::nonNull)
         .filter(filter)
-        .filter(notification -> deliverersByChannel.containsKey(notification.getChannel()))
+        .filter(diff -> deliverersByChannel.containsKey(diff.getChannel()))
         .forEach(
             notification ->
                 deliverersByChannel

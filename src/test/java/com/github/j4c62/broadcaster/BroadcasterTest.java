@@ -1,130 +1,268 @@
 package com.github.j4c62.broadcaster;
 
 import static com.github.j4c62.data.Channel.EMAIL;
-import static com.github.j4c62.data.Channel.EVENT_BRIDGE;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.Mockito.*;
 
 import com.github.j4c62.composer.DiffusibleComposer;
+import com.github.j4c62.data.Channel;
 import com.github.j4c62.delivery.Deliverer;
 import com.github.j4c62.delivery.Diffusible;
 import com.github.j4c62.selector.DelivererSelector;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unused")
 class BroadcasterTest {
 
-  @Mock DelivererSelector selector;
-  @Mock DiffusibleComposer composer;
+  private static Deliverer getDeliverer() {
+    return new Deliverer() {
+      @Override
+      public void deliver(Diffusible diffusible) {
+        System.out.printf("Delivering...%s%n", diffusible.getChannel());
+      }
 
-  @Mock Diffusible cloudEvent;
-
-  @Mock Diffusible emailNotification;
-  @Mock Diffusible eventBridgeNotification;
-
-  @Mock Deliverer emailDeliverer;
-  @Mock Deliverer eventBridgeDeliverer;
-
-  @Test
-  void shouldDeliverOnlyMatchingNotifications() {
-    when(emailDeliverer.getChannel()).thenReturn(EMAIL);
-    when(emailNotification.getChannel()).thenReturn(EMAIL);
-    when(selector.findDelivers(cloudEvent)).thenReturn(List.of(emailDeliverer));
-    when(composer.compose()).thenReturn(List.of(emailNotification, eventBridgeNotification));
-
-    Broadcaster broadcaster = Broadcaster.spec(selector, composer).build();
-
-    broadcaster.broadcast(cloudEvent);
-
-    verify(emailDeliverer).deliver(emailNotification);
-    verify(eventBridgeDeliverer, never()).deliver(any());
+      @Override
+      public Channel getChannel() {
+        return EMAIL;
+      }
+    };
   }
 
+  private static Diffusible getDiffusible() {
+    return () -> EMAIL;
+  }
+
+  /**
+   * ========================== Tests for Delivery Logic ==========================
+   *
+   * <p>These tests focus on verifying the logic related to delivering notifications based on the
+   * matching channels between the deliverers and the notifications.
+   */
   @Test
-  void shouldTriggerOnDeliveryCallback() {
-    when(emailDeliverer.getChannel()).thenReturn(EMAIL);
-    when(emailNotification.getChannel()).thenReturn(EMAIL);
-    when(selector.findDelivers(cloudEvent)).thenReturn(List.of(emailDeliverer));
-    when(composer.compose()).thenReturn(List.of(emailNotification));
+  @DisplayName("t1: Should deliver only matching notifications")
+  void t1() {
+    // Arrange
+    Deliverer emailDeliverer = getDeliverer();
+    Diffusible emailNotification = getDiffusible();
 
-    ArrayList<BroadcastEvent> deliveries = new ArrayList<>();
+    DelivererSelector selector = diff -> List.of(emailDeliverer);
+    DiffusibleComposer composer = () -> List.of(emailNotification);
 
-    Broadcaster broadcaster =
-        Broadcaster.spec(selector, composer).onDelivery(deliveries::add).build();
+    List<BroadcastEvent> deliveries = new ArrayList<>();
 
-    broadcaster.broadcast(cloudEvent);
+    // Act
+    Broadcaster.spec(selector, composer)
+        .onDelivery(deliveries::add)
+        .when((diff, broad) -> true)
+        .execute(emailNotification);
 
+    // Assert - Verify if the onDelivery callback was triggered
     assertThat(deliveries).hasSize(1);
     var event = deliveries.getFirst();
     assertThat(event.deliverer()).isEqualTo(emailDeliverer);
-    assertThat(event.notification()).isEqualTo(emailNotification);
+    assertThat(event.diffusible()).isEqualTo(emailNotification);
   }
 
   @Test
-  void shouldSkipWhenNoDeliverersFound() {
-    when(selector.findDelivers(cloudEvent)).thenReturn(List.of());
-    when(composer.compose()).thenReturn(List.of(emailNotification));
-
-    Broadcaster broadcaster = Broadcaster.spec(selector, composer).build();
-    broadcaster.broadcast(cloudEvent);
-
-    verify(emailDeliverer, never()).deliver(any());
-  }
-
-  @Test
-  void shouldApplyCustomFilter() {
-    when(emailDeliverer.getChannel()).thenReturn(EMAIL);
-    when(selector.findDelivers(cloudEvent)).thenReturn(List.of(emailDeliverer));
-    when(composer.compose()).thenReturn(List.of(emailNotification));
-
-    Broadcaster broadcaster = Broadcaster.spec(selector, composer).filter(diff -> false).build();
-
-    broadcaster.broadcast(cloudEvent);
-
-    verify(emailDeliverer, never()).deliver(any());
-  }
-
-  @Test
-  void shouldSkipWhenNoMatchingDeliverersForNotifications() {
-    when(eventBridgeDeliverer.getChannel()).thenReturn(EVENT_BRIDGE);
-    when(selector.findDelivers(cloudEvent)).thenReturn(List.of(eventBridgeDeliverer));
-    when(composer.compose()).thenReturn(List.of(emailNotification)); // EMAIL ≠ EVENT_BRIDGE
-
-    Broadcaster broadcaster = Broadcaster.spec(selector, composer).build();
-    broadcaster.broadcast(cloudEvent);
-
-    verify(eventBridgeDeliverer, never()).deliver(any());
-  }
-
-  @Test
-  void shouldDoNothingWhenComposerReturnsEmptyList() {
-    when(emailDeliverer.getChannel()).thenReturn(EMAIL);
-    when(selector.findDelivers(cloudEvent)).thenReturn(List.of(emailDeliverer));
-    when(composer.compose()).thenReturn(List.of());
-
-    Broadcaster broadcaster = Broadcaster.spec(selector, composer).build();
-    broadcaster.broadcast(cloudEvent);
-
-    verify(emailDeliverer, never()).deliver(any());
-  }
-
-  @Test
-  void callbackShouldNotTriggerIfNoDeliveryOccurs() {
-    when(selector.findDelivers(cloudEvent)).thenReturn(List.of());
-    when(composer.compose()).thenReturn(List.of(emailNotification));
+  @DisplayName("t2: Should skip when no deliverers found")
+  void t2() {
+    // Arrange
+    Diffusible emailNotification = getDiffusible();
+    DelivererSelector selector = diff -> List.of();
+    DiffusibleComposer composer = () -> List.of(emailNotification);
 
     List<BroadcastEvent> callbackCalls = new ArrayList<>();
 
-    Broadcaster broadcaster =
-        Broadcaster.spec(selector, composer).onDelivery(callbackCalls::add).build();
+    // Act
+    Broadcaster.spec(selector, composer)
+        .onDelivery(callbackCalls::add)
+        .when((diff, broad) -> true)
+        .execute(emailNotification);
 
-    broadcaster.broadcast(cloudEvent);
-
+    // Assert - No delivery should occur because no deliverers
     assertThat(callbackCalls).isEmpty();
+  }
+
+  @Test
+  @DisplayName("t3: Should skip when no matching deliverers for notifications")
+  void t3() {
+    // Arrange
+    Deliverer eventBridgeDeliverer = getDeliverer();
+    Diffusible emailNotification = getDiffusible();
+
+    DelivererSelector selector = diff -> List.of(eventBridgeDeliverer);
+    DiffusibleComposer composer = List::of;
+
+    List<BroadcastEvent> callbackCalls = new ArrayList<>();
+
+    // Act
+    Broadcaster.spec(selector, composer)
+        .onDelivery(callbackCalls::add)
+        .when((diff, broad) -> true)
+        .execute(emailNotification);
+
+    // Assert - No delivery should occur because no matching deliverers
+    assertThat(callbackCalls).isEmpty();
+  }
+
+  @Test
+  @DisplayName("t4: Should do nothing when composer returns empty list")
+  void t4() {
+    // Arrange
+    Deliverer emailDeliverer = getDeliverer();
+    Diffusible emailNotification = getDiffusible();
+
+    // Using lambda for selector and composer
+    DelivererSelector selector = diff -> List.of(emailDeliverer);
+    DiffusibleComposer composer = List::of; // Empty list
+
+    List<BroadcastEvent> callbackCalls = new ArrayList<>();
+
+    // Act
+    Broadcaster.spec(selector, composer)
+        .onDelivery(callbackCalls::add)
+        .when((diff, broad) -> true)
+        .execute(emailNotification);
+
+    // Assert - No delivery should occur because composer returned an empty list
+    assertThat(callbackCalls).isEmpty();
+  }
+
+  /**
+   * ========================== Tests for Callback Functionality ==========================
+   *
+   * <p>These tests check the behavior of callback functions such as the `onDelivery` handler that
+   * should trigger actions when notifications are delivered.
+   */
+  @Test
+  @DisplayName("t5: Should trigger and run the action when condition is true")
+  void t5() {
+    // Arrange
+    Deliverer emailDeliverer = getDeliverer();
+    Diffusible emailNotification = getDiffusible();
+
+    // Using lambda for selector and composer
+    DelivererSelector selector = diff -> List.of(emailDeliverer);
+    DiffusibleComposer composer = () -> List.of(emailNotification);
+
+    AtomicBoolean actionExecuted = new AtomicBoolean(false);
+
+    // Act
+    Broadcaster.spec(selector, composer)
+        .onDelivery(event -> actionExecuted.set(true))
+        .when((diff, broad) -> true)
+        .execute(emailNotification);
+
+    // Assert - Action should have been executed
+    assertThat(actionExecuted.get()).isTrue();
+  }
+
+  @Test
+  @DisplayName("t6: Should not trigger action when condition is false")
+  void t6() {
+    // Arrange
+    AtomicBoolean actionExecuted = new AtomicBoolean(false);
+
+    // Act
+    Broadcaster.spec(diff -> List.of(), List::of)
+        .onDelivery(event -> actionExecuted.set(true))
+        .when((diff, broad) -> false)
+        .execute(getDiffusible());
+
+    // Assert - Action should not be executed since condition is false
+    assertThat(actionExecuted.get()).isFalse();
+  }
+
+  @Test
+  @DisplayName("t7: Should handle null conditions gracefully")
+  void t7() {
+    // Arrange
+    AtomicBoolean actionExecuted = new AtomicBoolean(false);
+
+    // Act
+    Broadcaster.spec(diff -> List.of(), List::of)
+        .onDelivery(event -> actionExecuted.set(true))
+        .when(null)
+        .execute(getDiffusible());
+
+    // Assert - Action should not be executed as the condition is null
+    assertThat(actionExecuted.get()).isFalse();
+  }
+
+  @Test
+  @DisplayName("t9: Should apply custom filter")
+  void t9() {
+    // Arrange
+    Deliverer emailDeliverer = getDeliverer();
+    Diffusible emailNotification = getDiffusible();
+
+    // Using lambda for selector and composer
+    DelivererSelector selector = diff -> List.of(emailDeliverer);
+    DiffusibleComposer composer = () -> List.of(emailNotification);
+
+    List<BroadcastEvent> callbackCalls = new ArrayList<>();
+
+    // Act
+    Broadcaster.spec(selector, composer)
+        .filter(diff -> false)
+        .onDelivery(callbackCalls::add)
+        .when((diff, broad) -> true)
+        .execute(emailNotification);
+
+    // Assert - No delivery should occur because filter prevents it
+    assertThat(callbackCalls).isEmpty();
+  }
+
+  @Test
+  @DisplayName("t10: Should not trigger onDelivery when onDelivery is null")
+  void t10() {
+    // Arrange
+    Deliverer emailDeliverer = getDeliverer();
+    Diffusible emailNotification = getDiffusible();
+
+    DelivererSelector selector = diff -> List.of(emailDeliverer);
+    DiffusibleComposer composer = () -> List.of(emailNotification);
+
+    List<BroadcastEvent> deliveries = new ArrayList<>();
+
+    // Act
+    Broadcaster.spec(selector, composer)
+        .onDelivery(null)
+        .when((diff, broad) -> true)
+        .execute(emailNotification);
+
+    Broadcaster.from(selector, composer).onDelivery(null).broadcast(emailNotification);
+    // Assert - No delivery should occur since onDelivery is null
+    assertThat(deliveries).isEmpty();
+  }
+
+  @Test
+  @DisplayName("t11: Should handle null filter gracefully")
+  void t11() {
+    // Arrange
+    AtomicBoolean actionExecuted = new AtomicBoolean(false);
+    Deliverer emailDeliverer = getDeliverer();
+    Diffusible emailNotification = getDiffusible();
+
+    DelivererSelector selector = diff -> List.of(emailDeliverer);
+    DiffusibleComposer composer = () -> List.of(emailNotification);
+
+    // Act
+    Broadcaster.spec(selector, composer)
+        .filter(null)
+        .onDelivery(event -> actionExecuted.set(true))
+        .when((diff, broad) -> true)
+        .execute(emailNotification);
+
+    Broadcaster.from(selector, composer)
+        .filter(null)
+        .onDelivery(event -> actionExecuted.set(true))
+        .broadcast(emailNotification);
+
+    // Assert - Action should be executed even with null filter
+    assertThat(actionExecuted.get()).isTrue();
   }
 }

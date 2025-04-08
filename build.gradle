@@ -8,17 +8,15 @@ repositories {
 }
 
 group = 'com.github.j4c62'
-version = '1.0.2'
+version = '1.0.3'
 
 def junitVersion = '5.10.0'
 def assertjVersion = '4.0.0-M1'
-def mockitoVersion = '5.17.0'
 
 dependencies {
     testImplementation platform("org.junit:junit-bom:${junitVersion}")
     testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation "org.assertj:assertj-core:${assertjVersion}"
-    testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
 }
 test {
     useJUnitPlatform()

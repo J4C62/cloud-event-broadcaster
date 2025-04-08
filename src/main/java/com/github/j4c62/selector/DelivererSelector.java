@@ -9,8 +9,8 @@ public interface DelivererSelector {
   /**
    * Find the deliverers for the given cloud event.
    *
-   * @param event The cloud event to select deliverers for.
+   * @param diffusible The cloud event to select deliverers for.
    * @return A list of {@link Deliverer}s that should deliver the event.
    */
-  List<Deliverer> findDelivers(Diffusible event);
+  List<Deliverer> findDelivers(Diffusible diffusible);
 }
