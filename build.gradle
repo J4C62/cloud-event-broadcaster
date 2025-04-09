@@ -26,7 +26,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY")
+            url = uri("https://maven.pkg.github.com/J4C62/cloud-event-broadcaster")
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
                 password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
