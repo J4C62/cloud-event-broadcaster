@@ -21,7 +21,7 @@ public interface BroadcasterExecutionConfigurator {
    * @param listener a {@link Consumer} that will be called when an event is delivered
    * @return the current {@link BroadcasterExecutionConfigurator} instance for further configuration
    */
-  BroadcasterExecutionConfigurator onDelivery(Consumer<BroadcastEvent> listener);
+  BroadcastConfiguration onDelivery(Consumer<BroadcastEvent> listener);
 
   /**
    * Sets the trigger condition that determines when the broadcasting should be executed.

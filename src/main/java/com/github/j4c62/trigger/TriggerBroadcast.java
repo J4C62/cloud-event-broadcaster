@@ -16,20 +16,19 @@ import java.util.function.BiPredicate;
 public interface TriggerBroadcast<T, U> extends BiPredicate<T, U> {
 
   /**
-   * Evaluates the predicate using the provided arguments and executes the given action if the
-   * predicate returns {@code true}.
+   * Executes one of the given actions depending on whether the predicate evaluates to true or
+   * false.
    *
-   * <p>This method provides a convenient way to run the action only when the trigger condition is
-   * satisfied. The trigger condition is defined by the {@link #test(Object, Object)} method
-   * inherited from {@link BiPredicate}.
-   *
-   * @param t the first argument to the predicate (e.g., the event)
-   * @param u the second argument to the predicate (e.g., the broadcaster or context)
-   * @param action the action to be executed if the condition is {@code true}
+   * @param t The first input argument.
+   * @param u The second input argument.
+   * @param ifTrue Action to run if the predicate is true.
+   * @param ifFalse Action to run if the predicate is false.
    */
-  default void runIf(T t, U u, Runnable action) {
+  default void ifRunOrElse(T t, U u, Runnable ifTrue, Runnable ifFalse) {
     if (test(t, u)) {
-      action.run();
+      ifTrue.run();
+    } else {
+      ifFalse.run();
     }
   }
 }
