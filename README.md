@@ -72,8 +72,8 @@ broadcaster.broadcast(cloudEvent);
 
 - **Broadcaster:** The central class responsible for broadcasting events. It groups deliverers by channel and dispatches
   notifications.
-- **BroadcasterSpec:** A DSL interface to fluently build a configured `Broadcaster`.
-- **DefaultBroadcasterSpec:** The default implementation of `BroadcasterSpec`.
+- **BroadcastConfiguration:** A DSL interface to fluently build a configured `Broadcaster`.
+- **DefaultBroadcastConfiguration:** The default implementation of `BroadcasterSpec`.
 - **BroadcastEvent:** A simple POJO encapsulating delivery events.
 
 ## Contributing
