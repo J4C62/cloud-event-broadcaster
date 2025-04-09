@@ -9,7 +9,7 @@ repositories {
 }
 
 group = 'com.github.j4c62'
-version = '1.0.5'
+version = '1.0.6'
 
 def junitVersion = '5.10.0'
 def assertjVersion = '4.0.0-M1'
