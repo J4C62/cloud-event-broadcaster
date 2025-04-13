@@ -4,5 +4,6 @@ package com.github.j4c62.data;
 @SuppressWarnings("unused")
 public enum Channel {
   EMAIL,
-  EVENT_BRIDGE
+  EVENT_BRIDGE,
+  GRCP
 }
